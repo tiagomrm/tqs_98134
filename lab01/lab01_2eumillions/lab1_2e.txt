@@ -1,0 +1,3 @@
+The class with the least coverage is CuponEuromillions, being that the only method not being tested is format().
+
+The class Dip has some missed branches, especially in the method equals().
