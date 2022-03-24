@@ -5,13 +5,16 @@ import org.json.JSONObject;
 
 public class AddressResolver {
 
-    private ISimpleHttpClient httpClient;
+    private final ISimpleHttpClient httpClient;
 
-    AddressResolver(ISimpleHttpClient httpClient) {
+    public AddressResolver(ISimpleHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 
-    Optional<Address> findAddressForLocation(double lat, double lng) {
+    public Optional<Address> findAddressForLocation(double lat, double lng) {
+        if (Math.abs(lat) > 90 || Math.abs(lng) > 180)
+            throw new IllegalArgumentException("Invalid input coordinates (" + lat + "," + lng + ")");
+
         JSONObject locations = new JSONObject(
                 httpClient.doHttpGet(lat + ", " + lng))
                 .getJSONArray("results")
