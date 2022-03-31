@@ -13,7 +13,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-public class CarRepositoryTest {
+public class C_CarRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 

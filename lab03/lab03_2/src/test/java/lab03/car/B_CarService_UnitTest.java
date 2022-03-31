@@ -19,7 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
-public class CarService_UnitTest {
+public class B_CarService_UnitTest {
 
     @Mock( lenient = true)
     private CarRepository carRepository;
