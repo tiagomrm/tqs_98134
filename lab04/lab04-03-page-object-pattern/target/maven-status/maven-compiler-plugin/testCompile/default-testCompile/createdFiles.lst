@@ -1,0 +1,6 @@
+tests\TravelAgencyTest.class
+webpages\HomePage.class
+webpages\PurchasePage.class
+tests\TravelAgencyHtmlUnitTest.class
+webpages\ReservationPage.class
+webpages\ConfirmationPage.class
