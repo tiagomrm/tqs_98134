@@ -6,7 +6,7 @@ import java.util.Objects;
 
 public class SetOfNaturals implements Iterable<Integer> {
 
-	private ArrayList<Integer> collection = new ArrayList<>();
+	private final ArrayList<Integer> collection = new ArrayList<>();
 
 	public void add(int element) {
 		if (this.collection.contains(element)) {
@@ -42,7 +42,8 @@ public class SetOfNaturals implements Iterable<Integer> {
 
 
 	public boolean intersects(SetOfNaturals subset) {
-		return false;
+		return this.collection.stream()
+				.anyMatch(subset::contains);
 	}
 
 	public boolean contains(Integer element) {
@@ -75,8 +76,15 @@ public class SetOfNaturals implements Iterable<Integer> {
 		}
 
 		final SetOfNaturals other = (SetOfNaturals) obj;
-		return Objects.equals(this.collection, other.collection);
+
+		if (other.size() != this.size())
+			return false;
+
+		return this.collection.stream().allMatch(other::contains);
 	}
 
-
+	@Override
+	public String toString() {
+		return this.collection.toString();
+	}
 }

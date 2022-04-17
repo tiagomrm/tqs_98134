@@ -71,7 +71,7 @@ public class SetOfNaturalsTest {
 
     @Test
     public void testEquals() {
-        assertEquals(setC, setD, "equal sets are reported as different");
+        assertEquals(setB, setD, "equal sets are reported as different");
     }
 
 
