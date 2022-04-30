@@ -5,6 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @SpringBootTest
@@ -16,7 +17,8 @@ class Hw1ApplicationTests {
     }
 
     public static Date parseDate(String date) throws ParseException {
-        return DateFormat.getDateInstance().parse(date);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        return simpleDateFormat.parse(date);
     }
 
 }
