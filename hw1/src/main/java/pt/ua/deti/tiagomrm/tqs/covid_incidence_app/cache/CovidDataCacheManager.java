@@ -1,10 +1,14 @@
 package pt.ua.deti.tiagomrm.tqs.covid_incidence_app.cache;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
+import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.service.Key;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class CovidDataCacheManager {
@@ -14,27 +18,71 @@ public class CovidDataCacheManager {
 
     Map<Key, CovidDataCacheEntry> cache;
 
+    private final Logger logger = LogManager.getLogger();
+
     private int hits;
     private int misses;
+
     private int calls;
 
     public CovidDataCacheManager() {
         this.dateOfInitialization = LocalDateTime.now();
-        cache = new LinkedHashMap<>();
+        cache = new ConcurrentHashMap<>();
         hits = 0;
         misses = 0;
         calls = 0;
     }
 
-    public Optional<CovidReport> getGlobalReportForDate(Date date) {return Optional.empty();}
+    public Optional<CovidReport> getCachedCovidReport(Key key) {
+        logger.info("Getting " + key.getRegion() +" report for date " + key.getDate() + "...");
+        calls++;
 
-    public Optional<CovidReport> getReportForCountryOnDate(String country, Date date) {return Optional.empty();}
+        CovidDataCacheEntry entry = cache.get(key);
+
+        CovidReport report = null;
+
+        if(entry != null) {
+            logger.info("Found cached entry for report");
+            report = entry.getReport();
+            hits++;
+        } else {
+            logger.debug("No report found by cache manager [" + cache.size() + " entries in cache]");
+            misses++;
+        }
+
+        updateCacheTTL();
+
+        return Optional.ofNullable(report);
+    }
+
+    public void updateCacheTTL() {
+        logger.info("Starting update of cache entries' TTL");
+        for (Map.Entry<Key, CovidDataCacheEntry> cachedEntry: cache.entrySet()) {
+            if (cachedEntry.getValue().isDyingAfterCall())
+                cache.remove(cachedEntry.getKey());
+            else
+                cachedEntry.getValue().decrementTTL();
+        }
+        logger.info("Finished TTL update");
+    }
+
+    public boolean saveToCache(Key key, CovidReport report) {
+        logger.info("Saving report to cache... ");
+
+        CovidDataCacheEntry entry = new CovidDataCacheEntry(report);
+
+        cache.put(key, entry);
+        logger.info("Finished saving to cache ");
+
+        return true;
+    }
 
     public boolean saveToCache(CovidReport report) {
-        return false;
+        return saveToCache(Key.getRegionalKey(report.getRegion(), report.getDate()), report);
     }
 
     public void emptyCache() {
+        cache = new ConcurrentHashMap<>();
     }
 
     public int getHits() {
@@ -49,6 +97,11 @@ public class CovidDataCacheManager {
         return calls;
     }
 
+    @Override
+    public String toString() {
+        return "CovidDataCacheManager [" + cache.size() + " entries]";
+    }
+
     static class CovidDataCacheEntry {
 
         private final CovidReport report;
@@ -60,40 +113,19 @@ public class CovidDataCacheManager {
         }
 
         public CovidReport getReport() {
-            return null;
+            return report;
         }
 
-        public boolean hasReachedEndOfTTL() {
-            return false;
+        public boolean isDyingAfterCall() {
+            return ttl <= 1;
         }
 
         public void decrementTTL() {
             this.ttl--;
         }
 
-        public void resetTTL() {}
-    }
-
-    static class Key {
-        private final String country;
-        private final Date date;
-
-        Key(String country, Date date) {
-            this.country = country;
-            this.date = date;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Key key = (Key) o;
-            return country.equals(key.country) && date.equals(key.date);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(country, date);
+        public void resetTTL() {
+            this.ttl = TIME_TO_LIVE;
         }
     }
 }

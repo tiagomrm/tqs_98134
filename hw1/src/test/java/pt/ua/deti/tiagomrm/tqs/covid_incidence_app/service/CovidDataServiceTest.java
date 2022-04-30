@@ -53,8 +53,8 @@ class CovidDataServiceTest {
         country = "Portugal";
         date = parseDate("2022/04/26");
 
-        countryReport = new CovidReport(country, parseDate("2022/04/26"), 23864, 472, 903, 23);
-        globalReport = new CovidReport("Global", parseDate("2022/04/26"), 2971475, 74729, 206544, 3698);
+        countryReport = CovidReport.getRegionalCovidReport(country, parseDate("2022/04/26"), 23864, 472, 903, 23);
+        globalReport = CovidReport.getGlobalCovidReport(parseDate("2022/04/26"), 2971475, 74729, 206544, 3698);
     }
 
     @BeforeEach
@@ -77,7 +77,7 @@ class CovidDataServiceTest {
         service.updateRegionsListFromAPI();
         assertThat(service.getRegionsList(), equalTo(countries));
 
-        verifyNoInteractions(mockedAPIA);
+        verifyNoInteractions(mockedAPIB);
     }
 
     @Test
@@ -89,14 +89,14 @@ class CovidDataServiceTest {
         service.updateRegionsListFromAPI();
         assertThat(service.getRegionsList(), equalTo(countries));
 
-        verify(mockedAPIA.getAllRegions(), times(1));
-        verify(mockedAPIB.getAllRegions(), times(1));
+        verify(mockedAPIA, times(1)).getAllRegions();
+        verify(mockedAPIB, times(1)).getAllRegions();
     }
 
     @Test
     void testCacheHasInformation_thenReturnThatReport() {
-        when(mockedCacheManager.getGlobalReportForDate(date)).thenReturn(Optional.ofNullable(globalReport));
-        when(mockedCacheManager.getReportForCountryOnDate(country, date)).thenReturn(Optional.ofNullable(countryReport));
+        when(mockedCacheManager.getCachedCovidReport(Key.getGlobalKey(date))).thenReturn(Optional.ofNullable(globalReport));
+        when(mockedCacheManager.getCachedCovidReport(Key.getRegionalKey(country, date))).thenReturn(Optional.ofNullable(countryReport));
 
         assertServiceGetsRightGlobalAndRegionalReports();
 
@@ -107,17 +107,15 @@ class CovidDataServiceTest {
     @Test
     void testReportNotCachedButInFirstAPISource_thenReturnThatReport() {
 
-        when(mockedAPIA.getDataForCountryOnDate(country, date)).thenReturn(Optional.of(countryReport));
-        when(mockedAPIA.getGlobalDataForDate(date)).thenReturn(Optional.of(globalReport));
+        when(mockedAPIA.getReport(Key.getRegionalKey(country, date))).thenReturn(Optional.of(countryReport));
+        when(mockedAPIA.getReport(Key.getGlobalKey(date))).thenReturn(Optional.of(globalReport));
 
         assertServiceGetsRightGlobalAndRegionalReports();
 
 
-        verify(mockedCacheManager, times(1)).getGlobalReportForDate(any());
-        verify(mockedCacheManager, times(1)).getReportForCountryOnDate(any(), any());
+        verify(mockedCacheManager, times(2)).getCachedCovidReport(any());
 
-        verify(mockedAPIA, times(1)).getGlobalDataForDate(any());
-        verify(mockedAPIA, times(1)).getDataForCountryOnDate(any(), any());
+        verify(mockedAPIA, times(2)).getReport(any());
 
         verifyNoInteractions(mockedAPIB);
     }
@@ -125,29 +123,29 @@ class CovidDataServiceTest {
     @Test
     void testReportNotCachedAndNotInFirstAPISourceButInSecondAPISource_thenReturnThatReportAndMakePrimarySource() {
 
-        when(mockedAPIB.getDataForCountryOnDate(country, date)).thenReturn(Optional.of(countryReport));
-        when(mockedAPIB.getGlobalDataForDate(date)).thenReturn(Optional.of(globalReport));
+        when(mockedAPIB.getReport(Key.getRegionalKey(country, date))).thenReturn(Optional.of(countryReport));
+        when(mockedAPIB.getReport(Key.getGlobalKey(date))).thenReturn(Optional.of(globalReport));
 
         assertServiceGetsRightGlobalAndRegionalReports();
 
 
-        verify(mockedCacheManager, times(1)).getGlobalReportForDate(any());
-        verify(mockedCacheManager, times(1)).getReportForCountryOnDate(any(), any());
+        verify(mockedCacheManager, times(2)).getCachedCovidReport(any());
 
-        verify(mockedAPIA, times(1)).getDataForCountryOnDate(any(), any());
+        verify(mockedAPIA, times(1)).getReport(any());
         verifyNoMoreInteractions(mockedAPIA);
 
-        verify(mockedAPIB, times(1)).getGlobalDataForDate(any());
-        verify(mockedAPIB, times(1)).getDataForCountryOnDate(any(), any());
+        verify(mockedAPIB, times(2)).getReport(any());
     }
 
     @Test
     void testDataFromExternalAPIShouldBeSavedInCache_thenReturnThatReport() {
-        when(mockedCacheManager.saveToCache(any())).thenReturn(true);
+        when(mockedAPIB.getReport(Key.getRegionalKey(country, date))).thenReturn(Optional.of(countryReport));
+        when(mockedAPIB.getReport(Key.getGlobalKey(date))).thenReturn(Optional.of(globalReport));
+        when(mockedCacheManager.saveToCache(any(), any())).thenReturn(true);
 
         assertServiceGetsRightGlobalAndRegionalReports();
 
-        verify(mockedCacheManager.saveToCache(any()), times(2));
+        verify(mockedCacheManager, times(2)).saveToCache(any(), any());
     }
 
     @Test
@@ -161,14 +159,11 @@ class CovidDataServiceTest {
             assertTrue(sourcedRegionalReport.isEmpty());
         });
 
-        verify(mockedCacheManager, times(1)).getGlobalReportForDate(any());
-        verify(mockedCacheManager, times(1)).getReportForCountryOnDate(any(), any());
+        verify(mockedCacheManager, times(2)).getCachedCovidReport(any());
 
-        verify(mockedAPIA, times(1)).getGlobalDataForDate(any());
-        verify(mockedAPIA, times(1)).getDataForCountryOnDate(any(), any());
+        verify(mockedAPIA, times(2)).getReport(any());
 
-        verify(mockedAPIB, times(1)).getGlobalDataForDate(any());
-        verify(mockedAPIB, times(1)).getDataForCountryOnDate(any(), any());
+        verify(mockedAPIB, times(2)).getReport(any());
     }
 
     private void assertServiceGetsRightGlobalAndRegionalReports() {
