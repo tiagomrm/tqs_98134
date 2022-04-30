@@ -34,7 +34,7 @@ public class CovidDataCacheManager {
     }
 
     public Optional<CovidReport> getCachedCovidReport(Key key) {
-        logger.info("Getting " + key.getRegion() +" report for date " + key.getDate() + "...");
+        logger.info("Getting {} report for date {}", key.getRegion(), key.getDate());
         calls++;
 
         CovidDataCacheEntry entry = cache.get(key);
@@ -46,7 +46,7 @@ public class CovidDataCacheManager {
             report = entry.getReport();
             hits++;
         } else {
-            logger.debug("No report found by cache manager [" + cache.size() + " entries in cache]");
+            logger.debug("No report found by cache manager [{} entries in cache]", cache.size());
             misses++;
         }
 
@@ -99,7 +99,7 @@ public class CovidDataCacheManager {
 
     @Override
     public String toString() {
-        return "CovidDataCacheManager [" + cache.size() + " entries]";
+        return String.format("CovidDataCacheManager [%d entries]", cache.size());
     }
 
     static class CovidDataCacheEntry {

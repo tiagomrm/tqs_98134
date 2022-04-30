@@ -5,7 +5,7 @@ import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidAPIInterface;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.service.Key;
 
-import java.util.Date;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,7 +19,7 @@ public class CovidAPIByAxisbits implements CovidAPIInterface {
 
     @Override
     public List<String> getAllRegions() {
-        return null;
+        return Collections.emptyList();
     }
 
 

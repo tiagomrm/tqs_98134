@@ -26,7 +26,7 @@ public class CovidDataService {
 
     private Optional<CovidReport> getReportFromExternalAPIs(Key key){
         logger.info("Searching for data in external sources");
-        logger.debug("Checking " + sources.size() + "sources");
+        logger.debug("Checking {} sources", sources.size());
 
         Optional<CovidReport> foundReport;
 
@@ -61,7 +61,7 @@ public class CovidDataService {
     }
 
     public Optional<CovidReport> getReport(Key key) {
-        logger.info("Getting " + key.getRegion() +" report for date " + key.getDate() + "...");
+        logger.info("Getting {} report for date {}...", key.getRegion(), key.getDate());
 
         Optional<CovidReport> optionalCachedReport = cacheManager.getCachedCovidReport(key);
 
@@ -73,7 +73,7 @@ public class CovidDataService {
         return getReportFromExternalAPIs(key);
     }
 
-    public LinkedList<CovidAPIInterface> getSources() {
+    public List<CovidAPIInterface> getSources() {
         logger.info("Getting sources from service");
         return sources;
     }
