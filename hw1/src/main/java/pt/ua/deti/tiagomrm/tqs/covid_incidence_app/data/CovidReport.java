@@ -1,6 +1,7 @@
 package pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class CovidReport {
     private final String region;
@@ -58,6 +59,11 @@ public class CovidReport {
 
         CovidReport that = (CovidReport) o;
         return totalCases == that.totalCases && newCases == that.newCases && totalDeaths == that.totalDeaths && newDeaths == that.newDeaths && region.equals(that.region) && date.equals(that.date);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(region, date, totalCases, newCases, totalDeaths, newDeaths);
     }
 
     @Override
