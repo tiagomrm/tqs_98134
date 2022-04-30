@@ -7,6 +7,9 @@ on:
     types: [opened, synchronize, reopened]
 jobs:
   build:
+    defaults:
+      run:
+        working-directory: hw1
     name: Build
     runs-on: ubuntu-latest
     steps:
