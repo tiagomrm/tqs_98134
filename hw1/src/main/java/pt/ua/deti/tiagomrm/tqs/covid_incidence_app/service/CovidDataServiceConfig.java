@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.api.CovidAPIByAPISPORTS;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.api.CovidAPIByAxisbits;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.cache.CovidDataCacheManager;
-import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidAPIInterface;
+import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.api.CovidAPIInterface;
 
 import java.util.Arrays;
 import java.util.LinkedList;

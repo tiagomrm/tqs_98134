@@ -5,14 +5,17 @@ import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.service.Key;
 
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static pt.ua.deti.tiagomrm.tqs.covid_incidence_app.Hw1ApplicationTests.parseDate;
 
 class CovidDataCacheManagerTest {
+
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private CovidDataCacheManager cacheManager;
 
@@ -24,15 +27,14 @@ class CovidDataCacheManagerTest {
     private static CovidReport globalReportC;
 
     @BeforeAll
-    static void setup() throws ParseException {
-        countryReportA = CovidReport.getRegionalCovidReport("Portugal", parseDate("2022/04/26"), 23864, 472, 903, 23);
-        countryReportB = CovidReport.getRegionalCovidReport("Portugal", parseDate("2022/04/25"), 23392, 595, 880, 26);
-        countryReportC = CovidReport.getRegionalCovidReport("Portugal", parseDate("2022/04/24"), 22797, 444, 854, 34);
-        globalReportA = CovidReport.getGlobalCovidReport(parseDate("2022/04/26"), 2971475, 74729, 206544, 3698);
-        globalReportB = CovidReport.getGlobalCovidReport(parseDate("2022/04/25"), 2896746, 85553, 202846, 5687);
-        globalReportC = CovidReport.getGlobalCovidReport(parseDate("2022/04/24"), 2811193, 103135, 197159, 6317);
+    static void setup() {
+        countryReportA = CovidReport.getRegionalCovidReport("Portugal", LocalDate.parse("26/04/2022", formatter), 23864, 472, 903, 23);
+        countryReportB = CovidReport.getRegionalCovidReport("Portugal", LocalDate.parse("25/05/2022", formatter), 23392, 595, 880, 26);
+        countryReportC = CovidReport.getRegionalCovidReport("Portugal", LocalDate.parse("24/04/2022", formatter), 22797, 444, 854, 34);
+        globalReportA = CovidReport.getGlobalCovidReport(LocalDate.parse("26/04/2022", formatter), 2971475, 74729, 206544, 3698);
+        globalReportB = CovidReport.getGlobalCovidReport(LocalDate.parse("25/05/2022", formatter), 2896746, 85553, 202846, 5687);
+        globalReportC = CovidReport.getGlobalCovidReport(LocalDate.parse("24/04/2022", formatter), 2811193, 103135, 197159, 6317);
     }
-
 
     @BeforeEach
     void init() {
@@ -53,64 +55,64 @@ class CovidDataCacheManagerTest {
     }
 
     @Test
-    void testSuccessfulQueryForGlobal() throws ParseException {
-        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(parseDate("2022/04/26")));
+    void testSuccessfulQueryForGlobal() {
+        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(LocalDate.parse("26/04/2022", formatter)));
         assertTrue(cachedReport.isPresent());
         assertThat(cachedReport.get(), equalTo(globalReportA));
     }
 
     @Test
-    void testIncrementHits() throws ParseException {
+    void testIncrementHits() {
         assertThat(cacheManager.getHits(), equalTo(0));
-        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(parseDate("2022/04/26")));
+        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(LocalDate.parse("26/04/2022", formatter)));
         assertTrue(cachedReport.isPresent());
         assertThat(cachedReport.get(), equalTo(globalReportA));
         assertThat(cacheManager.getHits(), equalTo(1));
     }
 
     @Test
-    void testUnsuccessfulQueryForGlobal() throws ParseException {
-        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(parseDate("2022/04/27")));
+    void testUnsuccessfulQueryForGlobal() {
+        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(LocalDate.parse("27/04/2022", formatter)));
         assertTrue(cachedReport.isEmpty());
     }
 
     @Test
-    void testIncrementMisses() throws ParseException {
+    void testIncrementMisses() {
         assertThat(cacheManager.getHits(), equalTo(0));
-        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(parseDate("2022/04/27")));
+        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(LocalDate.parse("27/04/2022", formatter)));
         assertTrue(cachedReport.isEmpty());
         assertThat(cacheManager.getMisses(), equalTo(1));
     }
 
     @Test
-    void testIncrementCalls() throws ParseException {
+    void testIncrementCalls() {
         assertThat(cacheManager.getCalls(), equalTo(0));
-        cacheManager.getCachedCovidReport(Key.getGlobalKey(parseDate("2022/04/27")));
-        cacheManager.getCachedCovidReport(Key.getRegionalKey("Portugal", parseDate("2022/04/26")));
+        cacheManager.getCachedCovidReport(Key.getGlobalKey(LocalDate.parse("27/04/2022", formatter)));
+        cacheManager.getCachedCovidReport(Key.getRegionalKey("Portugal", LocalDate.parse("26/04/2022", formatter)));
         assertThat(cacheManager.getCalls(), equalTo(2));
     }
 
     @Test
-    void testSuccessfulQueryForCountry() throws ParseException {
-        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getRegionalKey("Portugal", parseDate("2022/04/26")));
+    void testSuccessfulQueryForCountry() {
+        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getRegionalKey("Portugal", LocalDate.parse("26/04/2022", formatter)));
         assertTrue(cachedReport.isPresent());
         assertThat(cachedReport.get(), equalTo(countryReportA));
     }
 
     @Test
-    void testUnsuccessfulQueryForCountry() throws ParseException {
-        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getRegionalKey("Portugal", parseDate("2022/04/27")));
+    void testUnsuccessfulQueryForCountry() {
+        Optional<CovidReport> cachedReport = cacheManager.getCachedCovidReport(Key.getRegionalKey("Portugal", LocalDate.parse("27/04/2022", formatter)));
         assertTrue(cachedReport.isEmpty());
     }
 
     @Test
-    void testCacheIsRemovedWhenReachesEndOfTTL() throws ParseException {
+    void testCacheIsRemovedWhenReachesEndOfTTL() {
         for (int i = 0; i < CovidDataCacheManager.TIME_TO_LIVE; i++) {
-            cacheManager.getCachedCovidReport(Key.getGlobalKey(parseDate("2022/04/27")));
+            cacheManager.getCachedCovidReport(Key.getGlobalKey(LocalDate.parse("27/04/2022", formatter)));
         }
 
-        Optional<CovidReport> globalReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(parseDate("2022/04/26")));
-        Optional<CovidReport> countryReport = cacheManager.getCachedCovidReport(Key.getRegionalKey("Portugal", parseDate("2022/04/26")));
+        Optional<CovidReport> globalReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(LocalDate.parse("26/04/2022", formatter)));
+        Optional<CovidReport> countryReport = cacheManager.getCachedCovidReport(Key.getRegionalKey("Portugal", LocalDate.parse("26/04/2022", formatter)));
 
         assertAll( () -> {
             assertTrue(globalReport.isEmpty());
