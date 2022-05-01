@@ -3,7 +3,6 @@ package pt.ua.deti.tiagomrm.tqs.covid_incidence_app;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,9 +15,12 @@ class Hw1ApplicationTests {
     void contextLoads() {
     }
 
+    public static Date parseDate(String date, SimpleDateFormat format) throws ParseException {
+        return format.parse(date);
+    }
+
     public static Date parseDate(String date) throws ParseException {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        return simpleDateFormat.parse(date);
+        return parseDate(date, new SimpleDateFormat("dd/MM/yyyy"));
     }
 
 }

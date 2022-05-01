@@ -8,10 +8,7 @@ import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidAPIInterface;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
 
 import javax.annotation.PostConstruct;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class CovidDataService {
 
@@ -50,6 +47,14 @@ public class CovidDataService {
 
         logger.info("Search completed unsuccessfully");
         return Optional.empty();
+    }
+
+    public List<CovidReport> getCovidGlobalReportsFromDateToDate(Date startDate, Date endDate) {
+        return Collections.emptyList();
+    }
+
+    public List<CovidReport> getCovidRegionalReportsFromDateToDate(String region, Date startDate, Date endDate) {
+        return Collections.emptyList();
     }
 
     public Optional<CovidReport> getGlobalReportForDate(Date date) {

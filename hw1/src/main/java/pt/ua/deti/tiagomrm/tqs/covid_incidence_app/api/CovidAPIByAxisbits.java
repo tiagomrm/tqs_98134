@@ -1,5 +1,6 @@
 package pt.ua.deti.tiagomrm.tqs.covid_incidence_app.api;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidAPIInterface;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
@@ -12,6 +13,13 @@ import java.util.Optional;
 @Component
 public class CovidAPIByAxisbits implements CovidAPIInterface {
 
+    BasicHttpClient httpClient;
+
+    @Autowired
+    public CovidAPIByAxisbits() {
+        httpClient = new BasicHttpClient("covid-193.p.rapidapi.com", "f4e5f56284msh79ce055a0bad368p1be5d8jsncc4511b3c4eb");
+    }
+
     @Override
     public Optional<CovidReport> getReport(Key key) {
         return Optional.empty();
@@ -19,6 +27,7 @@ public class CovidAPIByAxisbits implements CovidAPIInterface {
 
     @Override
     public List<String> getAllRegions() {
+        httpClient.getHttpResponse("https://covid-19-statistics.p.rapidapi.com/regions").getStatus();
         return Collections.emptyList();
     }
 
