@@ -15,7 +15,8 @@ import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.cache.CovidDataCacheManager;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.api.CovidAPIInterface;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
 
-import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -23,10 +24,11 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static pt.ua.deti.tiagomrm.tqs.covid_incidence_app.Hw1ApplicationTests.parseDate;
 
 @ExtendWith(MockitoExtension.class)
 class CovidDataServiceTest {
+
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @InjectMocks
     private CovidDataService service = new CovidDataService();
@@ -43,7 +45,7 @@ class CovidDataServiceTest {
     private CovidAPIByAxisbits mockedAPIB;
 
 
-    private static Date date;
+    private static LocalDate date;
     private static String country;
     private static CovidReport regionalReportA;
     private static CovidReport regionalReportB;
@@ -54,16 +56,16 @@ class CovidDataServiceTest {
 
 
     @BeforeAll
-    static void setup() throws ParseException {
+    static void setup() {
         country = "Portugal";
-        date = parseDate("2022/04/26");
+        date = LocalDate.parse("26/04/2022", formatter);
 
         regionalReportA = CovidReport.getRegionalCovidReport("Portugal", date , 23864, 472, 903, 23);
-        regionalReportB = CovidReport.getRegionalCovidReport("Portugal", parseDate("2022/04/25"), 23392, 595, 880, 26);
-        regionalReportC = CovidReport.getRegionalCovidReport("Portugal", parseDate("2022/04/24"), 22797, 444, 854, 34);
+        regionalReportB = CovidReport.getRegionalCovidReport("Portugal", LocalDate.parse("25/04/2022", formatter), 23392, 595, 880, 26);
+        regionalReportC = CovidReport.getRegionalCovidReport("Portugal", LocalDate.parse("24/04/2022", formatter), 22797, 444, 854, 34);
         globalReportA = CovidReport.getGlobalCovidReport(date , 2971475, 74729, 206544, 3698);
-        globalReportB = CovidReport.getGlobalCovidReport(parseDate("2022/04/25"), 2896746, 85553, 202846, 5687);
-        globalReportC = CovidReport.getGlobalCovidReport(parseDate("2022/04/24"), 2811193, 103135, 197159, 6317);
+        globalReportB = CovidReport.getGlobalCovidReport(LocalDate.parse("25/04/2022", formatter), 2896746, 85553, 202846, 5687);
+        globalReportC = CovidReport.getGlobalCovidReport(LocalDate.parse("24/04/2022", formatter), 2811193, 103135, 197159, 6317);
     }
 
     @BeforeEach
@@ -78,37 +80,37 @@ class CovidDataServiceTest {
     }
 
     @Test
-    void testGetRegionalReportForMultipleDatesIsSuccessful_thenReturnListOfReports() throws ParseException {
-        when(mockedCacheManager.getCachedCovidReport(Key.getRegionalKey("Portugal", date))).thenReturn(Optional.ofNullable(regionalReportA));
-        when(mockedAPIA.getReport(Key.getRegionalKey("Portugal", parseDate("2022/04/25")))).thenReturn(Optional.ofNullable(regionalReportB));
-        when(mockedAPIB.getReport(Key.getRegionalKey("Portugal", parseDate("2022/04/24")))).thenReturn(Optional.ofNullable(regionalReportC));
+    void testGetRegionalReportForMultipleDatesIsSuccessful_thenReturnListOfReports() {
+        lenient().when(mockedCacheManager.getCachedCovidReport(Key.getRegionalKey("Portugal", date))).thenReturn(Optional.ofNullable(regionalReportA));
+        lenient().when(mockedAPIA.getReport(Key.getRegionalKey("Portugal", LocalDate.parse("25/04/2022", formatter)))).thenReturn(Optional.ofNullable(regionalReportB));
+        lenient().when(mockedAPIB.getReport(Key.getRegionalKey("Portugal", LocalDate.parse("24/04/2022", formatter)))).thenReturn(Optional.ofNullable(regionalReportC));
 
         assertThat(
-                service.getCovidRegionalReportsFromDateToDate("Portugal", parseDate("2022/04/24"), date),
-                equalTo(Arrays.asList(regionalReportA, regionalReportB, regionalReportC))
+                service.getCovidRegionalReportsFromDateToDate("Portugal", LocalDate.parse("24/04/2022", formatter), date),
+                equalTo(Arrays.asList(regionalReportC, regionalReportB, regionalReportA))
         );
     }
 
     @Test
-    void testGetRegionalReportForMultipleDatesIsUnsuccessful_thenReturnEmptyList() throws ParseException {
-        assertThat(service.getCovidRegionalReportsFromDateToDate("Portugal", parseDate("2022/04/24"), date), empty());
+    void testGetRegionalReportForMultipleDatesIsUnsuccessful_thenReturnEmptyList() {
+        assertThat(service.getCovidRegionalReportsFromDateToDate("Portugal", LocalDate.parse("24/04/2022", formatter), date), empty());
     }
 
     @Test
-    void testGetGlobalReportForMultipleDatesIsSuccessful_thenReturnListOfReports() throws ParseException {
-        when(mockedCacheManager.getCachedCovidReport(Key.getGlobalKey(date))).thenReturn(Optional.ofNullable(globalReportA));
-        when(mockedAPIA.getReport(Key.getGlobalKey(parseDate("2022/04/25")))).thenReturn(Optional.ofNullable(globalReportB));
-        when(mockedAPIB.getReport(Key.getGlobalKey(parseDate("2022/04/24")))).thenReturn(Optional.ofNullable(globalReportC));
+    void testGetGlobalReportForMultipleDatesIsSuccessful_thenReturnListOfReports() {
+        lenient().when(mockedCacheManager.getCachedCovidReport(Key.getGlobalKey(date))).thenReturn(Optional.ofNullable(globalReportA));
+        lenient().when(mockedAPIA.getReport(Key.getGlobalKey(LocalDate.parse("25/04/2022", formatter)))).thenReturn(Optional.ofNullable(globalReportB));
+        lenient().when(mockedAPIB.getReport(Key.getGlobalKey(LocalDate.parse("24/04/2022", formatter)))).thenReturn(Optional.ofNullable(globalReportC));
 
         assertThat(
-                service.getCovidGlobalReportsFromDateToDate(parseDate("2022/04/24"), date),
-                equalTo(Arrays.asList(globalReportA, globalReportB, globalReportC))
+                service.getCovidGlobalReportsFromDateToDate(LocalDate.parse("24/04/2022", formatter), date),
+                equalTo(Arrays.asList(globalReportC, globalReportB, globalReportA))
         );
     }
 
     @Test
-    void testGetGlobalReportForMultipleDatesIsUnsuccessful_thenReturnEmptyList() throws ParseException {
-        assertThat(service.getCovidGlobalReportsFromDateToDate(parseDate("2022/04/24"), date), empty());
+    void testGetGlobalReportForMultipleDatesIsUnsuccessful_thenReturnEmptyList() {
+        assertThat(service.getCovidGlobalReportsFromDateToDate(LocalDate.parse("24/04/2022", formatter), date), empty());
     }
 
     @Test

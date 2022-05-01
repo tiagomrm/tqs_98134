@@ -1,17 +1,17 @@
 package pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Objects;
 
 public class CovidReport {
     private final String region;
-    private final Date date;
+    private final LocalDate date;
     private final int totalCases;
     private final int newCases;
     private final int totalDeaths;
     private final int newDeaths;
 
-    private CovidReport(String region, Date date, int totalCases, int newCases, int totalDeaths, int newDeaths) {
+    private CovidReport(String region, LocalDate date, int totalCases, int newCases, int totalDeaths, int newDeaths) {
         this.region = region;
         this.date = date;
         this.totalCases = totalCases;
@@ -20,11 +20,11 @@ public class CovidReport {
         this.newDeaths = newDeaths;
     }
 
-    public static CovidReport getRegionalCovidReport(String region, Date date, int totalCases, int newCases, int totalDeaths, int newDeaths) {
+    public static CovidReport getRegionalCovidReport(String region, LocalDate date, int totalCases, int newCases, int totalDeaths, int newDeaths) {
         return new CovidReport(region, date, totalCases, newCases, totalDeaths, newDeaths);
     }
 
-    public static CovidReport getGlobalCovidReport(Date date, int totalCases, int newCases, int totalDeaths, int newDeaths) {
+    public static CovidReport getGlobalCovidReport(LocalDate date, int totalCases, int newCases, int totalDeaths, int newDeaths) {
         return new CovidReport("Global", date, totalCases, newCases, totalDeaths, newDeaths);
     }
 
@@ -32,7 +32,7 @@ public class CovidReport {
         return region;
     }
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return date;
     }
 

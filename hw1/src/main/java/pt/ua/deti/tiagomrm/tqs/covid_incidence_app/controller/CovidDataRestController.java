@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.service.CovidDataService;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @RestController
@@ -16,7 +17,7 @@ public class CovidDataRestController {
     private CovidDataService service;
 
     @GetMapping("/api/{date}")
-    CovidReport getGlobalReportForDate(@PathVariable Date date) {
+    CovidReport getGlobalReportForDate(@PathVariable LocalDate date) {
         return null;
     }
 

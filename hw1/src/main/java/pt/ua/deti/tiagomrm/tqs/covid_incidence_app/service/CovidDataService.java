@@ -4,11 +4,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.cache.CovidDataCacheManager;
-import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidAPIInterface;
+import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.api.CovidAPIInterface;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CovidDataService {
 
@@ -49,19 +51,25 @@ public class CovidDataService {
         return Optional.empty();
     }
 
-    public List<CovidReport> getCovidGlobalReportsFromDateToDate(Date startDate, Date endDate) {
-        return Collections.emptyList();
+    public List<CovidReport> getCovidGlobalReportsFromDateToDate(LocalDate startDate, LocalDate endDate) {
+        return startDate.datesUntil(endDate.plusDays(1))
+                .map(date -> getReport(Key.getGlobalKey(date)))
+                .flatMap(Optional::stream)
+                .collect(Collectors.toList());
     }
 
-    public List<CovidReport> getCovidRegionalReportsFromDateToDate(String region, Date startDate, Date endDate) {
-        return Collections.emptyList();
+    public List<CovidReport> getCovidRegionalReportsFromDateToDate(String region, LocalDate startDate, LocalDate endDate) {
+        return startDate.datesUntil(endDate.plusDays(1))
+                .map(date -> getReport(Key.getRegionalKey(region, date)))
+                .flatMap(Optional::stream)
+                .collect(Collectors.toList());
     }
 
-    public Optional<CovidReport> getGlobalReportForDate(Date date) {
+    public Optional<CovidReport> getGlobalReportForDate(LocalDate date) {
         return getReport(Key.getGlobalKey(date));
     }
 
-    public Optional<CovidReport> getReportForCountryOnDate(String region, Date date) {
+    public Optional<CovidReport> getReportForCountryOnDate(String region, LocalDate date) {
         return getReport(Key.getRegionalKey(region, date));
     }
 
@@ -111,5 +119,6 @@ public class CovidDataService {
     public List<String> getRegionsList() {
         return regionsList;
     }
+
 
 }

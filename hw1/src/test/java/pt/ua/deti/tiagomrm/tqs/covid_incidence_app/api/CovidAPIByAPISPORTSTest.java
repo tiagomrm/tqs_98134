@@ -13,7 +13,8 @@ import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.service.Key;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -23,11 +24,12 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
-import static pt.ua.deti.tiagomrm.tqs.covid_incidence_app.Hw1ApplicationTests.parseDate;
 
 
 @ExtendWith(MockitoExtension.class)
 class CovidAPIByAPISPORTSTest {
+
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @InjectMocks
     CovidAPIByAPISPORTS api = new CovidAPIByAPISPORTS();
@@ -74,16 +76,16 @@ class CovidAPIByAPISPORTSTest {
 
 
     @Test
-    void testGettingSuccessfulRegionalReport_thenReturnThatCovidReportWrappedByOptional() throws ParseException {
+    void testGettingSuccessfulRegionalReport_thenReturnThatCovidReportWrappedByOptional() {
         when(mockHttpResponse.getStatus()).thenReturn(200);
         when(mockHttpResponse.getBody()).thenReturn(mockedRegionalReportJsonNode);
         when(httpClient.getHttpResponse("https://covid-193.p.rapidapi.com/history?country=Portugal&day=2022-04-30")).thenReturn(mockHttpResponse);
 
         CovidReport regionalReport = CovidReport.getRegionalCovidReport(
-                "Portugal", parseDate("30/04/2022"), 3853800, 0, 22280, 0
+                "Portugal", LocalDate.parse("2022-04-30", formatter), 3853800, 0, 22280, 0
         );
 
-        Key key = Key.getRegionalKey("Portugal", parseDate("2022-04-30", new SimpleDateFormat("yyyy-MM-dd")));
+        Key key = Key.getRegionalKey("Portugal", LocalDate.parse("2022-04-30", formatter));
 
         Optional<CovidReport> optionalReport = api.getReport(key);
 
@@ -95,16 +97,16 @@ class CovidAPIByAPISPORTSTest {
 
 
     @Test
-    void testGettingSuccessfulGlobalReport_thenReturnThatCovidReportWrappedByOptional() throws ParseException {
+    void testGettingSuccessfulGlobalReport_thenReturnThatCovidReportWrappedByOptional() {
         when(mockHttpResponse.getStatus()).thenReturn(200);
         when(mockHttpResponse.getBody()).thenReturn(mockedGlobalReportJsonNode);
         when(httpClient.getHttpResponse("https://covid-193.p.rapidapi.com/history?country=All&day=2022-04-30")).thenReturn(mockHttpResponse);
 
         CovidReport globalReport = CovidReport.getGlobalCovidReport(
-                parseDate("30/04/2022"), 513219474, 414237, 6260260, 1251
+                LocalDate.parse("2022-04-30", formatter), 513219474, 414237, 6260260, 1251
         );
 
-        Key key = Key.getGlobalKey(parseDate("2022-04-30", new SimpleDateFormat("yyyy-MM-dd")));
+        Key key = Key.getGlobalKey(LocalDate.parse("2022-04-30", formatter));
 
         Optional<CovidReport> optionalReport = api.getReport(key);
 
@@ -115,23 +117,23 @@ class CovidAPIByAPISPORTSTest {
     }
 
     @Test
-    void testGettingUnsuccessfulRegionalReport_thenReturnAnEmptyOptional() throws ParseException {
+    void testGettingUnsuccessfulRegionalReport_thenReturnAnEmptyOptional() {
         when(mockHttpResponse.getStatus()).thenReturn(200);
         when(mockHttpResponse.getBody()).thenReturn(mockedEmptyJson);
         when(httpClient.getHttpResponse("https://covid-193.p.rapidapi.com/history?country=Portugal&day=2022-04-30")).thenReturn(mockHttpResponse);
 
-        Key key = Key.getRegionalKey("Portugal", parseDate("2022-04-30", new SimpleDateFormat("yyyy-MM-dd")));
+        Key key = Key.getRegionalKey("Portugal", LocalDate.parse("2022-04-30", formatter));
 
         assertTrue(api.getReport(key).isEmpty());
     }
 
     @Test
-    void testGettingUnsuccessfulGlobalReport_thenReturnAnEmptyOptional() throws ParseException {
+    void testGettingUnsuccessfulGlobalReport_thenReturnAnEmptyOptional() {
         when(mockHttpResponse.getStatus()).thenReturn(200);
         when(mockHttpResponse.getBody()).thenReturn(mockedEmptyJson);
         when(httpClient.getHttpResponse("https://covid-193.p.rapidapi.com/history?country=All&day=2022-04-30")).thenReturn(mockHttpResponse);
 
-        Key key = Key.getGlobalKey(parseDate("2022-04-30", new SimpleDateFormat("yyyy-MM-dd")));
+        Key key = Key.getGlobalKey(LocalDate.parse("2022-04-30", formatter));
 
         assertTrue(api.getReport(key).isEmpty());
 

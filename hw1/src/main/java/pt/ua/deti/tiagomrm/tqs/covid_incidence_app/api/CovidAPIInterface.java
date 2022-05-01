@@ -1,5 +1,6 @@
-package pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data;
+package pt.ua.deti.tiagomrm.tqs.covid_incidence_app.api;
 
+import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.service.Key;
 
 import java.util.List;
