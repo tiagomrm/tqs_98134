@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.service.Key;
 
-import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
