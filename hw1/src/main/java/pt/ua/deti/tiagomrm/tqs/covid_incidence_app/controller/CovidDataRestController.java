@@ -3,6 +3,8 @@ package pt.ua.deti.tiagomrm.tqs.covid_incidence_app.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
@@ -20,6 +22,8 @@ import java.util.Optional;
 
 @RestController
 public class CovidDataRestController {
+
+    private final Logger logger = LogManager.getLogger();
 
     @Autowired
     private CovidDataService service;
@@ -43,7 +47,7 @@ public class CovidDataRestController {
             return ResponseEntity.ok(body);
 
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.error(e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -64,7 +68,7 @@ public class CovidDataRestController {
                     service.getCovidRegionalReportsFromDateToDate(region.get(), startDate, endDate) :
                     service.getCovidGlobalReportsFromDateToDate(startDate, endDate));
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.error(e);
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok().body(body);
@@ -78,7 +82,7 @@ public class CovidDataRestController {
             try {
                 return ResponseEntity.ok().body(mapper.writeValueAsString(regionsList));
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                logger.error(e);
             }
         return ResponseEntity.noContent().build();
     }
@@ -88,7 +92,7 @@ public class CovidDataRestController {
         try {
             return ResponseEntity.ok().body(service.getCacheReportJSON());
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.error(e);
             return ResponseEntity.badRequest().build();
         }
     }
