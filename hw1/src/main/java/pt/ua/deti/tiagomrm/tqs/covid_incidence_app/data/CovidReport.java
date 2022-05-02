@@ -1,10 +1,16 @@
 package pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.time.LocalDate;
 import java.util.Objects;
 
+@JsonDeserialize(using = CovidReportDeserializer.class)
 public class CovidReport {
     private final String region;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private final LocalDate date;
     private final int totalCases;
     private final int newCases;

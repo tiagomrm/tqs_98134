@@ -1,5 +1,6 @@
 package pt.ua.deti.tiagomrm.tqs.covid_incidence_app.cache;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@JsonSerialize(using = CovidDataCacheManagerSerializer.class)
 public class CovidDataCacheManager {
 
     public static final int TIME_TO_LIVE = 10;
@@ -79,6 +81,10 @@ public class CovidDataCacheManager {
 
     public boolean saveToCache(CovidReport report) {
         return saveToCache(Key.getRegionalKey(report.getRegion(), report.getDate()), report);
+    }
+
+    public LocalDateTime getDateOfInitialization() {
+        return dateOfInitialization;
     }
 
     public void emptyCache() {
