@@ -1,5 +1,7 @@
 package pt.ua.deti.tiagomrm.tqs.covid_incidence_app.cache;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.service.Key;
@@ -118,6 +120,21 @@ class CovidDataCacheManagerTest {
             assertTrue(globalReport.isEmpty());
             assertTrue(countryReport.isEmpty());
         });
+    }
+
+    @Test
+    void testSerializedReport() throws JsonProcessingException {
+        Optional<CovidReport> hitReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(LocalDate.parse("26/04/2022", formatter)));
+        Optional<CovidReport> missReport = cacheManager.getCachedCovidReport(Key.getGlobalKey(LocalDate.parse("27/04/2022", formatter)));
+
+        ObjectMapper mapper = new ObjectMapper();
+        System.out.println(mapper.writeValueAsString(cacheManager));
+
+        assertThat(mapper.writeValueAsString(cacheManager),
+                allOf(
+                        containsString("\"calls\":2"),
+                        containsString("\"hits\":1"),
+                        containsString("\"misses\":1")));
     }
 
 }

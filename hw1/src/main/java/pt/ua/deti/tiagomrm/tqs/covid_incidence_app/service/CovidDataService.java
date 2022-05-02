@@ -1,5 +1,7 @@
 package pt.ua.deti.tiagomrm.tqs.covid_incidence_app.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,6 +120,11 @@ public class CovidDataService {
 
     public List<String> getRegionsList() {
         return regionsList;
+    }
+
+    public String getCacheReportJSON() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(cacheManager);
     }
 
 
