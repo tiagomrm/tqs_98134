@@ -25,14 +25,13 @@ public class CovidDataRestController {
 
     private final Logger logger = LogManager.getLogger();
 
+    @Autowired
     private CovidDataService service;
 
     private ObjectMapper mapper;
 
     @Autowired
     CovidDataRestController(){
-        service = new CovidDataService();
-
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
     }

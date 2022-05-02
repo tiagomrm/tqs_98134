@@ -8,8 +8,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -37,7 +40,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-@WebMvcTest(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 class CovidDataRestControllerTest {
 
     @InjectMocks
