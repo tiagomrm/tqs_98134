@@ -22,6 +22,7 @@ import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.data.CovidReport;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.service.CovidDataService;
 import pt.ua.deti.tiagomrm.tqs.covid_incidence_app.service.Key;
 
+import javax.swing.text.html.parser.Entity;
 import java.lang.reflect.Array;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
@@ -33,7 +34,6 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -46,30 +46,49 @@ class CovidDataRestControllerTest {
     @Mock
     private CovidDataService service;
 
+    @Mock
+    private ObjectMapper mapper;
+
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @AfterEach
     void tearDown(){
-        reset(service);
+        reset(service, mapper);
     }
 
     @Test
-    void testSingleRegionalReportIsSuccessful_thenReturnOptionalWrappedCovidReport() throws JsonProcessingException {
+    void testGetSingleRegionalReportIsSuccessful_thenReturnOptionalWrappedCovidReport() throws JsonProcessingException {
         LocalDate date = LocalDate.parse("26/04/2022", formatter);
 
-        Optional<CovidReport> optionalReport =
-                Optional.of(CovidReport.getRegionalCovidReport(
-                        "Portugal", date, 23864, 472, 903, 23
-                ));
+        CovidReport report = CovidReport.getRegionalCovidReport(
+                "Portugal", date, 23864, 472, 903, 23
+                );
 
-        when(service.getReport(Key.getRegionalKey("Portugal", date))).thenReturn(optionalReport);
+        String serializedReport = "{\"region\":\"Portugal\",\"date\":\"2022-04-26\",\"totalCases\":23864,\"newCases\":472,\"totalDeaths\":903,\"newDeaths\":23}";
+
+        when(service.getReport(Key.getRegionalKey("Portugal", date))).thenReturn(Optional.of(report));
+        when(mapper.writeValueAsString(report)).thenReturn(serializedReport);
 
         ResponseEntity<String> response = restController.getReportForDate(Optional.of("Portugal"), date);
 
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
+        assertThat(response, equalTo(ResponseEntity.ok(serializedReport)));
+    }
 
-        assertThat(mapper.readValue(response.getBody(), CovidReport.class), equalTo(optionalReport.get()));
+    @Test
+    void testGetSingleGlobalReportIsSuccessful_thenReturnOptionalWrappedCovidReport() throws JsonProcessingException {
+        LocalDate date = LocalDate.parse("26/04/2022", formatter);
+
+        CovidReport report = CovidReport.getGlobalCovidReport(
+                date, 2971475, 74729, 206544, 3698);
+
+        String serializedReport = "{\"region\":\"Global\",\"date\":\"2022-04-26\",\"totalCases\":2971475,\"newCases\":74729,\"totalDeaths\":206544,\"newDeaths\":3698}";
+
+        when(service.getReport(Key.getGlobalKey(date))).thenReturn(Optional.of(report));
+        when(mapper.writeValueAsString(report)).thenReturn(serializedReport);
+
+        ResponseEntity<String> response = restController.getReportForDate(Optional.empty(), date);
+
+        assertThat(response, equalTo(ResponseEntity.ok(serializedReport)));
     }
 
     @Test
@@ -81,18 +100,17 @@ class CovidDataRestControllerTest {
         CovidReport regionalReportB = CovidReport.getRegionalCovidReport("Portugal", LocalDate.parse("25/04/2022", formatter), 23392, 595, 880, 26);
         CovidReport regionalReportC = CovidReport.getRegionalCovidReport("Portugal", startDate, 22797, 444, 854, 34);
 
+
+        List<CovidReport> reportList = Arrays.asList(regionalReportC, regionalReportB, regionalReportA);
+        String serializedList = "[{\"region\":\"Portugal\",\"date\":\"2022-04-24\",\"totalCases\":22797,\"newCases\":444,\"totalDeaths\":854,\"newDeaths\":34},{\"region\":\"Portugal\",\"date\":\"2022-04-25\",\"totalCases\":23392,\"newCases\":595,\"totalDeaths\":880,\"newDeaths\":26},{\"region\":\"Portugal\",\"date\":\"2022-04-26\",\"totalCases\":23864,\"newCases\":472,\"totalDeaths\":903,\"newDeaths\":23}]";
+
         when(service
                 .getCovidRegionalReportsFromDateToDate("Portugal", startDate, endDate))
-                .thenReturn(Arrays.asList(regionalReportC, regionalReportB, regionalReportA));
+                .thenReturn(reportList);
 
-        ObjectMapper mapper = new ObjectMapper();
+        when(mapper.writeValueAsString(reportList)).thenReturn(serializedList);
 
-        ResponseEntity<String> response = restController.getReportsForRangeOfDates(Optional.of("Portugal"), startDate, endDate);
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
-
-        List<CovidReport> responseRegions = mapper.readValue(response.getBody(), new TypeReference<List<CovidReport>>() {});
-
-        assertThat(responseRegions, equalTo(Arrays.asList(regionalReportC, regionalReportB, regionalReportA)));
+        assertThat(restController.getReportsForRangeOfDates(Optional.of("Portugal"), startDate, endDate), equalTo(ResponseEntity.ok(serializedList)));
     }
 
     @Test
@@ -104,69 +122,90 @@ class CovidDataRestControllerTest {
         CovidReport globalReportB = CovidReport.getGlobalCovidReport(LocalDate.parse("25/04/2022", formatter), 23392, 595, 880, 26);
         CovidReport globalReportC = CovidReport.getGlobalCovidReport(startDate, 22797, 444, 854, 34);
 
+        List<CovidReport> reportList = Arrays.asList(globalReportC, globalReportB, globalReportA);
+        String serializedList = "[{\"region\":\"Global\",\"date\":\"2022-04-24\",\"totalCases\":22797,\"newCases\":444,\"totalDeaths\":854,\"newDeaths\":34},{\"region\":\"Global\",\"date\":\"2022-04-25\",\"totalCases\":23392,\"newCases\":595,\"totalDeaths\":880,\"newDeaths\":26},{\"region\":\"Global\",\"date\":\"2022-04-26\",\"totalCases\":23864,\"newCases\":472,\"totalDeaths\":903,\"newDeaths\":23}]";
+
         when(service
                 .getCovidGlobalReportsFromDateToDate(startDate, endDate))
                 .thenReturn(Arrays.asList(globalReportC, globalReportB, globalReportA));
 
-        ObjectMapper mapper = new ObjectMapper();
+        when(mapper.writeValueAsString(reportList)).thenReturn(serializedList);
 
-        ResponseEntity<String> response = restController.getReportsForRangeOfDates(Optional.empty(), startDate, endDate);
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
-
-        List<CovidReport> responseRegions = mapper.readValue(response.getBody(), new TypeReference<List<CovidReport>>() {});
-
-        assertThat(responseRegions, equalTo(Arrays.asList(globalReportC, globalReportB, globalReportA)));
+        assertThat(restController.getReportsForRangeOfDates(Optional.empty(), startDate, endDate), equalTo(ResponseEntity.ok(serializedList)));
     }
 
     @Test
-    void testSingleRegionalReportIsUnsuccessful_thenReturnEmptyOptional() {
+    void testGetSingleRegionalReportIsUnsuccessful_thenReturnNoContentResponse() {
         LocalDate date = LocalDate.parse("26/04/2022", formatter);
 
         when(service.getReport(Key.getRegionalKey("Portugal", date))).thenReturn(Optional.empty());
 
-        assertThat(restController.getReportForDate(Optional.of("Portugal"), date).getStatusCode(), not(equalTo(200)));
+        assertThat(restController.getReportForDate(Optional.of("Portugal"), date),
+                equalTo(ResponseEntity.noContent().build()));
     }
 
     @Test
-    void testSingleGlobalReportIsSuccessful_thenReturnOptionalWrappedCovidReport() throws JsonProcessingException {
-        LocalDate date = LocalDate.parse("26/04/2022", formatter);
-
-        Optional<CovidReport> optionalReport =
-                Optional.of(CovidReport.getGlobalCovidReport(
-                        date, 2971475, 74729, 206544, 3698)
-                );
-
-        when(service.getReport(Key.getGlobalKey(date))).thenReturn(optionalReport);
-
-        ResponseEntity<String> response = restController.getReportForDate(Optional.empty(), date);
-
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-
-        assertThat(mapper.readValue(response.getBody(), CovidReport.class), equalTo(optionalReport.get()));
-    }
-
-    @Test
-    void testSingleGlobalReportIsUnsuccessful_thenReturnEmptyList() {
+    void testGetSingleGlobalReportIsUnsuccessful_thenReturnNoContentResponse() {
         LocalDate date = LocalDate.parse("26/04/2022", formatter);
 
         when(service.getGlobalReportForDate(date)).thenReturn(Optional.empty());
 
-        assertThat(restController.getReportForDate(Optional.empty(), date).getStatusCode(), not(equalTo(200)));
+        assertThat(restController.getReportForDate(Optional.empty(), date),
+                equalTo(ResponseEntity.noContent().build()));
+    }
+
+    @Test
+    void testGetSingleReportThrowingJsonProcessingException_returnsBadRequestResponse() throws JsonProcessingException {
+        LocalDate date = LocalDate.parse("26/04/2022", formatter);
+
+        CovidReport report = CovidReport.getGlobalCovidReport(
+                date, 2971475, 74729, 206544, 3698);
+
+        when(service.getReport(Key.getGlobalKey(date))).thenReturn(Optional.of(report));
+        when(mapper.writeValueAsString(report)).thenThrow(JsonProcessingException.class);
+
+        assertThat(restController.getReportForDate(Optional.empty(), date), equalTo(ResponseEntity.badRequest().build()));
+    }
+
+    @Test
+    void testGetMultipleReportsThrowingJsonProcessingException_returnsBadRequestResponse() throws JsonProcessingException {
+        LocalDate startDate = LocalDate.parse("24/04/2022", formatter);
+        LocalDate endDate = LocalDate.parse("26/04/2022", formatter);
+
+        CovidReport globalReportA = CovidReport.getGlobalCovidReport(endDate, 23864, 472, 903, 23);
+        CovidReport globalReportB = CovidReport.getGlobalCovidReport(LocalDate.parse("25/04/2022", formatter), 23392, 595, 880, 26);
+        CovidReport globalReportC = CovidReport.getGlobalCovidReport(startDate, 22797, 444, 854, 34);
+
+        List<CovidReport> reportList = Arrays.asList(globalReportC, globalReportB, globalReportA);
+
+        when(service
+                .getCovidGlobalReportsFromDateToDate(startDate, endDate))
+                .thenReturn(Arrays.asList(globalReportC, globalReportB, globalReportA));
+
+        when(mapper.writeValueAsString(reportList)).thenThrow(JsonProcessingException.class);
+
+        assertThat(restController.getReportsForRangeOfDates(Optional.empty(), startDate, endDate), equalTo(ResponseEntity.badRequest().build()));
     }
 
     @Test
     void testGetAllRegions_ReturnsListOfStrings() throws JsonProcessingException {
         List<String> regions = Arrays.asList("Portugal", "Italy", "France");
+        String serializedRegions = "[Portugal, Italy, France]";
+
         when(service.getRegionsList()).thenReturn(regions);
+        when(mapper.writeValueAsString(regions)).thenReturn(serializedRegions);
 
-        ObjectMapper mapper = new ObjectMapper();
+        assertThat(restController.getAllRegions(), equalTo(ResponseEntity.ok(serializedRegions)));
+    }
 
-        ResponseEntity<String> response = restController.getAllRegions();
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
-        List<String> responseRegions = mapper.readValue(response.getBody(), new TypeReference<List<String>>() {});
+    @Test
+    void testGetAllRegionsThrowingJsonProcessingException_ReturnsBadRequestResponse() throws JsonProcessingException {
+        List<String> regions = Arrays.asList("Portugal", "Italy", "France");
 
-        assertThat(responseRegions, equalTo(regions));
+        when(service.getRegionsList()).thenReturn(regions);
+        when(mapper.writeValueAsString(regions)).thenThrow(JsonProcessingException.class);
+
+        assertThat(restController.getAllRegions(), equalTo(ResponseEntity.badRequest().build()));
     }
 
     @Test

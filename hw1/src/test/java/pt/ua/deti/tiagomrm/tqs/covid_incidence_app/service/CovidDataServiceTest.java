@@ -80,6 +80,12 @@ class CovidDataServiceTest {
     }
 
     @Test
+    void testGetSources_thenReturnListOfTwoSources() {
+        List<CovidAPIInterface> sources = service.getSources();
+        assertThat(sources.size(), equalTo(2));
+    }
+
+    @Test
     void testGetRegionalReportForMultipleDatesIsSuccessful_thenReturnListOfReports() {
         lenient().when(mockedCacheManager.getCachedCovidReport(Key.getRegionalKey("Portugal", date))).thenReturn(Optional.ofNullable(regionalReportA));
         lenient().when(mockedAPIA.getReport(Key.getRegionalKey("Portugal", LocalDate.parse("25/04/2022", formatter)))).thenReturn(Optional.ofNullable(regionalReportB));

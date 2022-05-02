@@ -25,8 +25,17 @@ public class CovidDataRestController {
 
     private final Logger logger = LogManager.getLogger();
 
-    @Autowired
     private CovidDataService service;
+
+    private ObjectMapper mapper;
+
+    @Autowired
+    CovidDataRestController(){
+        service = new CovidDataService();
+
+        mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+    }
 
     @GetMapping(value="/api/report", produces=MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<String> getReportForDate(
@@ -39,17 +48,15 @@ public class CovidDataRestController {
         if (optionalReport.isEmpty())
             return ResponseEntity.noContent().build();
 
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
+        String body;
 
         try {
-            String body = mapper.writeValueAsString( optionalReport.get() );
-            return ResponseEntity.ok(body);
-
+            body = mapper.writeValueAsString( optionalReport.get() );
         } catch (JsonProcessingException e) {
             logger.error(e);
             return ResponseEntity.badRequest().build();
         }
+        return ResponseEntity.ok(body);
     }
 
     @GetMapping(value="/api/reports", produces=MediaType.APPLICATION_JSON_VALUE)
@@ -57,9 +64,6 @@ public class CovidDataRestController {
             @RequestParam Optional<String> region,
             @RequestParam(value="startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value="endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
 
         String body;
 
@@ -69,20 +73,20 @@ public class CovidDataRestController {
                     service.getCovidGlobalReportsFromDateToDate(startDate, endDate));
         } catch (JsonProcessingException e) {
             logger.error(e);
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok().body(body);
     }
 
     @GetMapping(value="/api/regions", produces=MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<String> getAllRegions() {
-        ObjectMapper mapper = new ObjectMapper();
         List<String> regionsList = service.getRegionsList();
         if (!regionsList.isEmpty())
             try {
                 return ResponseEntity.ok().body(mapper.writeValueAsString(regionsList));
             } catch (JsonProcessingException e) {
                 logger.error(e);
+                return ResponseEntity.badRequest().build();
             }
         return ResponseEntity.noContent().build();
     }
